@@ -1,0 +1,23 @@
+# Run IWYU
+name: IWYU
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  checkout-and-iwyu:
+    container: viktorklochkov/ubuntu-llvm-iwyu:19
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DBUILD_TESTS=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+    - name: Run IWYU
+      run: iwyu_tool.py -p ${{github.workspace}}/build main*.cpp */*.cpp -- -Xiwyu --error -Xiwyu --cxx17ns
+

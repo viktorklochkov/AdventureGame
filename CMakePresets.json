@@ -1,0 +1,31 @@
+{
+  "version": 8,
+  "configurePresets": [
+    {
+      "name": "clang",
+      "displayName": "Clang 15.0.0 arm64-apple-darwin23.3.0",
+      "description": "Using compilers: C = /usr/bin/clang, CXX = /usr/bin/clang++",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}",
+        "CMAKE_C_COMPILER": "/usr/bin/clang",
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_TESTS": true
+      }
+    },
+    {
+      "name": "clang-llvm",
+      "displayName": "Clang 19.1.7 arm64-apple-darwin24.3.0",
+      "description": "Using compilers: C = /opt/homebrew/opt/llvm/bin/clang, CXX = /opt/homebrew/opt/llvm/bin/clang++",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}",
+        "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm/bin/clang",
+        "CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm/bin/clang++",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_TESTS": true
+      }
+    }
+  ]
+}
