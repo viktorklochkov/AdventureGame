@@ -1,23 +1,19 @@
 /**
  * @file main.cpp
- * @brief A simple C++ program that prints "Hello, World!" to the console.
+ * @brief
  *
- * This program demonstrates basic input/output operations in C++.
  */
 
-#include "lib_a/HelloWorldClass.hpp"
-
-#include <iostream>
-#include <string>
+#include "lib/Game.hpp"
 
 /**
  * @brief The main function of the program.
  *
- * Entry point of the program. Calls the printGreeting() function.
- *
  * @return int Returns 0 on successful execution.
  */
 int main() {
-  std::cout << lib_a::greeting();
+  adv_sk::Game game;
+  game.start();
+
   return 0;
 }
