@@ -16,6 +16,6 @@ if(BUILD_TESTS)
     Game.test.cpp)
 
   add_executable(GameLogicTests ${TEST_SOURCES})
-  target_link_libraries(GameLogicTests PRIVATE libA gtest_main)
+  target_link_libraries(GameLogicTests PRIVATE GameLogic gtest_main)
   gtest_discover_tests(GameLogicTests TEST_PREFIX GameLogic)
 endif()

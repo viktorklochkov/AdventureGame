@@ -2,150 +2,138 @@
 
 #include "Game.hpp"
 
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers.hpp>
-#include <catch2/catch_all.hpp>
+#include <gtest/gtest.h>
 
 using namespace adv_sk;
 
-using namespace Catch::Matchers;
+TEST(Game, start) {
+    Game game{};
+    game.put_into_test_mode();
+    game.start();
+    EXPECT_EQ(game.get_current_message(), "You are in the Grand Hall. It is a vast, echoing chamber.");
+    EXPECT_EQ(game.get_current_location(), "GrandHall");
+}
 
+TEST(Game, move_north) {
+    Game game{};
+    game.put_into_test_mode();
+    game.start();
+    game.move(Direction::North);
+    EXPECT_EQ(game.get_current_message(), "You are in the Armoury. Racks of dusty weapons line the walls.");
+    EXPECT_EQ(game.get_current_location(), "Armoury");
 
-TEST_CASE("Check that tests are executed")
+}
+
+TEST(Game, move_south) {
+    Game game{};
+    game.put_into_test_mode();
+    game.start();
+    game.move(Direction::North);
+    game.move(Direction::South);
+    EXPECT_EQ(game.get_current_message(), "You are in the Grand Hall. It is a vast, echoing chamber.");
+    EXPECT_EQ(game.get_current_location(), "GrandHall");
+}
+
+TEST(Game, available_directions)
 {
-    SECTION("Check that the game is started") {
-        Game game{};
-        game.put_into_test_mode();
-        game.start();
-        CHECK(game.get_current_message() == "You are in the Grand Hall. It is a vast, echoing chamber.");
-        CHECK(game.get_current_location() == "GrandHall");
-    }
+    Game game{};
+    game.put_into_test_mode();
+    game.start();
+    auto list = game.get_available_directions();
+    EXPECT_EQ(list.size(), 1);
+    EXPECT_EQ(list[0], Direction::North);
 
-    SECTION("Check that I can move North") {
-        Game game{};
-        game.put_into_test_mode();
-        game.start();
-        game.move(Direction::North);
-        CHECK(game.get_current_message() == "You are in the Armoury. Racks of dusty weapons line the walls.");
-        CHECK(game.get_current_location() == "Armoury");
+    game.move(Direction::North);
+    list = game.get_available_directions();
+    EXPECT_EQ(list.size(), 1);
+    EXPECT_EQ(list[0], Direction::South);
+}
 
-    }
+TEST(Game, move_in_wrong_direction)
+{
+    Game game{};
+    game.put_into_test_mode();
+    game.start();
 
-    SECTION("Check that I can move South") {
-        Game game{};
-        game.put_into_test_mode();
-        game.start();
-        game.move(Direction::North);
-        game.move(Direction::South);
-        CHECK(game.get_current_message() == "You are in the Grand Hall. It is a vast, echoing chamber.");
-        CHECK(game.get_current_location() == "GrandHall");
-    }
+    game.move(Direction::South);
+    EXPECT_TRUE(game.get_current_message().find("Wrong direction") != std::string::npos);
+}
 
-    SECTION("Check that list of available directions works")
-    {
-        Game game{};
-        game.put_into_test_mode();
-        game.start();
-        auto list = game.get_available_directions();
-        CHECK(list.size() == 1);
-        CHECK(list[0] == Direction::North);
+TEST(Game, find_items)
+{
+    Game game{};
+    game.put_into_test_mode();
+    game.start();
 
-        game.move(Direction::North);
-        list = game.get_available_directions();
-        CHECK(list.size() == 1);
-        CHECK(list[0] == Direction::South);
-    }
+    game.move(Direction::North);
+    game.investigate();
+    EXPECT_EQ(game.get_current_message(), "You search the room. You found a rusty sword!\n");
+}
 
-    SECTION("Check that I cannot move in wrong direction")
-    {
-        Game game{};
-        game.put_into_test_mode();
-        game.start();
+TEST(Game, collect_items)
+{
+    Game game{};
+    game.put_into_test_mode();
+    game.start();
 
-        game.move(Direction::South);
-        CHECK_THAT(game.get_current_message(), StartsWith("Wrong direction"));
-    }
+    game.move(Direction::North);
+    game.investigate();
 
-    SECTION("Check that I can find hidden items")
-    {
-        Game game{};
-        game.put_into_test_mode();
-        game.start();
+    game.take_item("rusty sword");
+    game.investigate();
+    EXPECT_EQ(game.get_current_message(), "You search the room. Nothing found!\n");
+}
 
-        game.move(Direction::North);
-        game.investigate();
-        CHECK(game.get_current_message() == "You search the room. You found a rusty sword!\n");
-    }
+TEST(Game, has_state)
+{
+    Game game{};
+    game.put_into_test_mode();
+    game.start();
 
-    SECTION("Check that I can collect discovered item")
-    {
-        Game game{};
-        game.put_into_test_mode();
-        game.start();
+    game.move(Direction::North);
+    game.investigate();
 
-        game.move(Direction::North);
-        game.investigate();
+    game.take_item("rusty sword");
 
-        game.take_item("rusty sword");
-        game.investigate();
-        CHECK(game.get_current_message() == "You search the room. Nothing found!\n");
-    }
+    game.move(Direction::South);
+    game.move(Direction::North);
+    game.investigate();
 
-    SECTION("Check that a room remembers state")
-    {
-        Game game{};
-        game.put_into_test_mode();
-        game.start();
+    EXPECT_EQ(game.get_current_message(), "You search the room. Nothing found!\n");
+}
 
-        game.move(Direction::North);
-        game.investigate();
+TEST(Game, display_inventory) {
+    Game game{};
+    game.put_into_test_mode();
+    game.start();
 
-        game.take_item("rusty sword");
+    game.move(Direction::North);
+    game.investigate();
+    game.take_item("rusty sword");
+    game.display_player_inventory();
+    EXPECT_EQ(game.get_current_message(), "Your inventory contains: rusty sword.\n");
+}
 
-        game.move(Direction::South);
-        game.move(Direction::North);
-        game.investigate();
+TEST(Game, use_items) {
+    Game game{};
+    game.put_into_test_mode();
+    game.start();
 
-        CHECK(game.get_current_message() == "You search the room. Nothing found!\n");
-    }
+    game.investigate();
+    game.take_item("golden chalice");
 
-    SECTION("Check that I can see my inventory") {
-        Game game{};
-        game.put_into_test_mode();
-        game.start();
+    game.use_item("golden chalice");
+    EXPECT_EQ(game.get_current_message(), "You hold the golden chalice aloft. It glints in the light and feels cool to the touch.\n");
+}
 
-        game.move(Direction::North);
-        game.investigate();
-        game.take_item("rusty sword");
-        game.display_player_inventory();
-        CHECK(game.get_current_message() == "Your inventory contains: rusty sword.\n");
-    }
+TEST(Game, drop_items) {
+    Game game{};
+    game.put_into_test_mode();
+    game.start();
 
-    SECTION("Check that I use my items") {
-        Game game{};
-        game.put_into_test_mode();
-        game.start();
+    game.investigate();
+    game.take_item("golden chalice");
 
-        game.investigate();
-        game.take_item("golden chalice");
-
-        game.use_item("golden chalice");
-        CHECK(game.get_current_message() == "You hold the golden chalice aloft. It glints in the light and feels cool to the touch.\n");
-    }
-
-    SECTION("Check that I can drop items") {
-        Game game{};
-        game.put_into_test_mode();
-        game.start();
-
-        game.investigate();
-        game.take_item("golden chalice");
-
-        game.drop_item("golden chalice");
-        CHECK(game.get_current_message() == "You drop the golden chalice. It fades away in the darkness.\n");
-    }
-
-
-
-
+    game.drop_item("golden chalice");
+    EXPECT_EQ(game.get_current_message(), "You drop the golden chalice. It fades away in the darkness.\n");
 }
