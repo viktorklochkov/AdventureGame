@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['project_0',['CppTemplate project',['../md_README.html',1,'']]]
+  ['project_0',['AdventureGame project',['../md_README.html',1,'']]]
 ];

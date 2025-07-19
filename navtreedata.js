@@ -25,13 +25,12 @@
 var NAVTREE =
 [
   [ "CppTemplate", "index.html", [
-    [ "CppTemplate project", "md_README.html", [
+    [ "AdventureGame project", "md_README.html", [
       [ "Overview", "md_README.html#autotoc_md1", null ],
       [ "Features", "md_README.html#autotoc_md2", null ],
       [ "Getting Started", "md_README.html#autotoc_md3", null ],
-      [ "Contributing", "md_README.html#autotoc_md4", null ],
-      [ "License", "md_README.html#autotoc_md5", null ],
-      [ "Contact", "md_README.html#autotoc_md6", null ]
+      [ "License", "md_README.html#autotoc_md4", null ],
+      [ "Contact", "md_README.html#autotoc_md5", null ]
     ] ],
     [ "Files", "files.html", [
       [ "File List", "files.html", "files_dup" ],
