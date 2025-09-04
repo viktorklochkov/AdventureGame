@@ -3,15 +3,16 @@
 //
 
 #include "Game.hpp"
-#include "Inventory.hpp"              // for InventoryItem
+#include "Inventory.hpp"// for InventoryItem
 
+#include <algorithm>// for __fn, find_if
+#include <cstdlib>  // IWYU pragma: keep
 #include <format>
+#include <initializer_list>// for initializer_list
 #include <iostream>
-#include <cstdlib>                    // IWYU pragma: keep
-#include <algorithm>                  // for __fn, find_if
-#include <initializer_list>           // for initializer_list
-#include <optional>                   // for optional
-#include <stdexcept>                  // for runtime_error
+#include <optional> // for optional
+#include <ranges>   // for find_if
+#include <stdexcept>// for runtime_error
 
 // IWYU pragma: no_include <__ostream/basic_ostream.h>
 // IWYU pragma: no_include  <_stdlib.h>

@@ -10,7 +10,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
-#include <vector>         // for vector
+#include <vector>// for vector
 
 namespace adv_sk {
 
@@ -22,7 +22,7 @@ class Map {
       const std::unordered_map<RoomName, RoomConnections>& connections);
 
   std::optional<RoomName> next_room(const RoomName& current_room,
-                                   Direction direction);
+                                    Direction direction);
 
   [[nodiscard]] std::string get_welcome_message(const RoomName& room) const;
 

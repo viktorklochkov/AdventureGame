@@ -4,13 +4,13 @@
 
 #include "Map.hpp"
 #include "Direction.hpp"
+#include "Inventory.hpp"// for InventoryItem
 #include "Room.hpp"
-#include "Inventory.hpp"  // for InventoryItem
 
 #include <optional>
 #include <string>
 #include <unordered_map>
-#include <utility>        // for pair
+#include <utility>// for pair
 
 namespace adv_sk {
 
@@ -30,7 +30,7 @@ Map::Map(const std::vector<Room>& rooms,
 }
 
 std::optional<RoomName> Map::next_room(const RoomName& current_room,
-                                      Direction direction) {
+                                       Direction direction) {
   auto room = _rooms.find(current_room)->second;
 
   if (!room.connections().connections.contains(direction)) {

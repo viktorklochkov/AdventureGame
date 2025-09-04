@@ -1,15 +1,15 @@
 // Copyright (c) 2025 Dr. Matthias Hölzl. All rights reserved.
 
 #include "Game.hpp"
-#include "Direction.hpp"  // for Direction
+#include "Direction.hpp"// for Direction
 
-#include "gtest/gtest.h"  // for Message, TestPartResult, AssertionResult
+#include "gtest/gtest.h"// for Message, TestPartResult, AssertionResult
 
-#include <string>         // for basic_string, string
-#include <vector>         // for vector
+#include <string>// for basic_string, string
+#include <vector>// for vector
 
-using adv_sk::Game;
 using adv_sk::Direction;
+using adv_sk::Game;
 
 TEST(Game, start) {
   Game game{};

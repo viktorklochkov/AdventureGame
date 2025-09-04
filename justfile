@@ -12,3 +12,6 @@ clang-tidy-fix: build-export
 
 iwyu: build-export
     iwyu_tool.py -p build-export main*.cpp */*.cpp -- -Xiwyu --error -Xiwyu --cxx17ns
+
+format:
+    clang-format -style=file -i main*.cpp */*.*pp
