@@ -4,75 +4,91 @@
 
 #pragma once
 
-#include "Direction.hpp"// for Direction
-#include "Map.hpp"      // for Map
-#include "Player.hpp"   // for Player
-#include "Room.hpp"     // for RoomName
+#include "Direction.hpp"  // for Direction
+#include "Map.hpp"        // for Map
+#include "Player.hpp"     // for Player
+#include "Room.hpp"       // for RoomName
 
-#include <memory> // for unique_ptr
-#include <string> // for basic_string, string
-#include <utility>// for move
-#include <vector> // for vector
+#include <cstdint>  // for uint8_t
+#include <memory>   // for unique_ptr
+#include <string>   // for basic_string, string
+#include <utility>  // for move
+#include <vector>   // for vector
 
 namespace adv_sk {
 
-class IInputHandler {
-};
+  enum class Action : std::uint8_t {
+    Move,
+    Investigate,
+    TakeItem,
+    DisplayInventory,
+    UseItem,
+    DropItem,
+    Quit,
+  };
 
-class Game {
- public:
-  Game() = default;
-  explicit Game(std::unique_ptr<Map> map) : _map(std::move(map)) {
-  }
+  class IInputHandler {
+   public:
+    virtual ~IInputHandler() = default;
 
-  void handle_user_action();
+    virtual Action get_action() = 0;
+    virtual void provide_directions(
+        const std::vector<Direction>& directions) = 0;
+    virtual Direction get_direction() = 0;
+    virtual std::string get_item_name() = 0;
 
-  void start();
+    virtual void provide_message(const std::string& message) = 0;
+  };
 
-  void move(Direction direction);
+  class Game {
+   public:
+    Game() = default;
+    explicit Game(std::unique_ptr<Map> map,
+                  std::unique_ptr<IInputHandler> input)
+        : _map(std::move(map)), _input_handler(std::move(input)) {
+    }
 
-  void investigate();
+    void handle_user_action();
 
-  void take_item(const std::string& item_name);
+    void start();
 
-  void display_player_inventory();
+    void move(Direction direction);
 
-  void use_item(const std::string& item_name);
+    void investigate();
 
-  void drop_item(const std::string& item_name);
+    void take_item(const std::string& item_name) const;
 
-  [[nodiscard]] std::vector<Direction> get_available_directions() const;
+    void display_player_inventory();
 
-  [[nodiscard]] std::string get_current_message() const {
-    return _current_message;
-  }
+    void use_item(const std::string& item_name);
 
-  [[nodiscard]] RoomName get_current_location() const {
-    return _player.get_current_room();
-  }
+    void drop_item(const std::string& item_name);
 
-  void put_into_test_mode() {
-    _test_mode = true;
-  }
+    [[nodiscard]] std::vector<Direction> get_available_directions() const;
 
-  [[nodiscard]] Player player() const {
-    return _player;
-  }
+    [[nodiscard]] std::string get_current_message() const {
+      return _current_message;
+    }
 
- private:
-  void print_message() const;
+    [[nodiscard]] RoomName get_current_location() const {
+      return _player->get_current_room();
+    }
 
-  void init();
+    [[nodiscard]] const Player& player() const {
+      return *_player;
+    }
 
-  void update_message(const std::string& message);
+   private:
+    void print_message() const;
 
-  std::unique_ptr<Map> _map{};
+    void init();
 
-  bool _test_mode{false};
+    void update_message(const std::string& message);
 
-  // current state
-  Player _player{};
+    std::unique_ptr<Map> _map{nullptr};
+    std::unique_ptr<Player> _player{std::make_unique<Player>()};
+    std::unique_ptr<IInputHandler> _input_handler{nullptr};
 
-  std::string _current_message{};
-};
-}// namespace adv_sk
+    std::string _current_message{};
+  };
+}  // namespace adv_sk

@@ -6,34 +6,35 @@
 
 #include "Room.hpp"
 
+#include <cstdint>  // for uint8_t
 #include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
-#include <vector>// for vector
+#include <vector>  // for vector
 
 namespace adv_sk {
 
-enum class Direction;
+  enum class Direction : std::uint8_t;
 
-class Map {
- public:
-  Map(const std::vector<Room>& rooms,
-      const std::unordered_map<RoomName, RoomConnections>& connections);
+  class Map {
+   public:
+    Map(const std::vector<Room>& rooms,
+        const std::unordered_map<RoomName, RoomConnections>& connections);
 
-  std::optional<RoomName> next_room(const RoomName& current_room,
-                                    Direction direction);
+    std::optional<RoomName> next_room(const RoomName& current_room,
+                                      Direction direction);
 
-  [[nodiscard]] std::string get_welcome_message(const RoomName& room) const;
+    [[nodiscard]] std::string get_welcome_message(const RoomName& room) const;
 
-  [[nodiscard]] Room& get_room(const RoomName& room) {
-    return _rooms.at(room);
-  }
+    [[nodiscard]] Room& get_room(const RoomName& room) {
+      return _rooms.at(room);
+    }
 
- private:
-  std::unordered_map<RoomName, Room> _rooms{};
-};
+   private:
+    std::unordered_map<RoomName, Room> _rooms{};
+  };
 
-std::unique_ptr<Map> create_map();
+  std::unique_ptr<Map> create_map();
 
-}// namespace adv_sk
+}  // namespace adv_sk

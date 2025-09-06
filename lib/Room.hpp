@@ -2,6 +2,7 @@
 
 #include "Inventory.hpp"
 
+#include <cstdint>  // for uint8_t
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -10,63 +11,66 @@
 
 namespace adv_sk {
 
-enum class Direction;
+  enum class Direction : std::uint8_t;
 
-using RoomName = std::string;
+  using RoomName = std::string;
 
-struct RoomConnections {
-  void add(Direction direction, const RoomName& room) {
-    connections.emplace(direction, room);
-  }
+  struct RoomConnections {
+    void add(Direction direction, const RoomName& room) {
+      connections.emplace(direction, room);
+    }
 
-  [[nodiscard]] std::optional<RoomName> get_connection(
-      Direction direction) const;
+    [[nodiscard]] std::optional<RoomName> get_connection(
+        Direction direction) const;
 
-  std::unordered_map<Direction, RoomName> connections{};
-};
+    std::unordered_map<Direction, RoomName> connections{};
+  };
 
-class Room {
- public:
-  explicit Room(RoomName _name, std::string _message = {},
-                std::vector<InventoryItem> _inventory = {},
-                RoomConnections _connections = {}) : _name(std::move(_name)), _message(std::move(_message)),
-                                                     _inventory(std::move(_inventory)), _connections(std::move(_connections)) {
-  }
+  class Room {
+   public:
+    explicit Room(RoomName _name, std::string _message = {},
+                  std::vector<InventoryItem> _inventory = {},
+                  RoomConnections _connections = {})
+        : _name(std::move(_name)),
+          _message(std::move(_message)),
+          _inventory(std::move(_inventory)),
+          _connections(std::move(_connections)) {
+    }
 
-  [[nodiscard]] std::string get_message() const {
-    return _message;
-  }
+    [[nodiscard]] std::string get_message() const {
+      return _message;
+    }
 
-  [[nodiscard]] std::string get_name() const {
-    return _name;
-  }
+    [[nodiscard]] std::string get_name() const {
+      return _name;
+    }
 
-  void add_connection(Direction direction, const RoomName& room) {
-    _connections.add(direction, room);
-  }
+    void add_connection(Direction direction, const RoomName& room) {
+      _connections.add(direction, room);
+    }
 
-  [[nodiscard]] RoomConnections connections() const {
-    return _connections;
-  }
+    [[nodiscard]] RoomConnections connections() const {
+      return _connections;
+    }
 
-  [[nodiscard]] std::vector<InventoryItem>& inventory() {
-    return _inventory;
-  }
+    [[nodiscard]] std::vector<InventoryItem>& inventory() {
+      return _inventory;
+    }
 
-  void add_to_inventory(const InventoryItem& item) {
-    _inventory.push_back(item);
-  }
+    void add_to_inventory(const InventoryItem& item) {
+      _inventory.push_back(item);
+    }
 
-  void remove_from_inventory(const InventoryItem& item) {
-    std::erase(_inventory, item);
-  }
+    void remove_from_inventory(const InventoryItem& item) {
+      std::erase(_inventory, item);
+    }
 
- private:
-  RoomName _name;
-  std::string _message{};
-  std::vector<InventoryItem> _inventory{};
+   private:
+    RoomName _name;
+    std::string _message{};
+    std::vector<InventoryItem> _inventory{};
 
-  RoomConnections _connections{};
-};
+    RoomConnections _connections{};
+  };
 
-}// namespace adv_sk
+}  // namespace adv_sk

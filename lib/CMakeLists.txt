@@ -4,6 +4,8 @@ set(SOURCES
         Map.cpp
         Player.cpp
         Room.cpp
+        ConsoleInputHandler.cpp
+        ConsoleInputHandler.h
 )
 
 string(REPLACE ".cpp" ".hpp" HEADERS "${SOURCES}")
