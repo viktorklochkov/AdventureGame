@@ -6,9 +6,11 @@
 
 #include "Inventory.hpp"  // for InventoryItem
 
-#include <algorithm>  // for __fn, find_if
-#include <format>
-#include <optional>  // for optional
+#include <array>       // for array
+#include <format>      // for format
+#include <functional>  // for identity
+#include <optional>    // for optional
+#include <ranges>      // for find_if
 
 namespace adv_sk {
 

@@ -3,10 +3,13 @@
 #include "Game.hpp"
 
 #include "Direction.hpp"  // for Direction
+#include "Map.hpp"        // for Map
 #include "gtest/gtest.h"  // for Message, TestPartResult, AssertionResult
 
-#include <string>  // for basic_string, string
-#include <vector>  // for vector
+#include <memory>   // for unique_ptr, make_unique
+#include <string>   // for basic_string, string
+#include <utility>  // for move
+#include <vector>   // for vector
 
 namespace adv_sk::test {
 
@@ -29,8 +32,8 @@ namespace adv_sk::test {
     // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
     Action _action{Action::Quit};
     Direction _direction{};
-    std::string _item_name{};
-    std::string _message{};
+    std::string _item_name;
+    std::string _message;
     // NOLINTEND(misc-non-private-member-variables-in-classes)
   };
 
@@ -71,7 +74,6 @@ namespace adv_sk::test {
 
   TEST(Game, availableDirections) {
     auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler const* input_handler_ptr = input_handler.get();
     Game game{nullptr, std::move(input_handler)};
     game.start();
     auto list = game.get_available_directions();
