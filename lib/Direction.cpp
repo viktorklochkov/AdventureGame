@@ -28,7 +28,6 @@ namespace adv_sk {
       case Direction::West:
         return "West";
     }
-    throw std::runtime_error("Unknown direction");
     return "";
   };
   Direction string_to_direction(const std::string& direction) {

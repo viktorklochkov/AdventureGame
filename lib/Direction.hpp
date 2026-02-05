@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>  // for uint8_t
 #include <string>
 
@@ -11,6 +12,9 @@ namespace adv_sk {
     East,
     West,
   };
+
+  inline constexpr std::array<Direction, 4> ALL_DIRECTIONS{
+      Direction::North, Direction::South, Direction::East, Direction::West};
 
   Direction opposite_direction(Direction direction);
 

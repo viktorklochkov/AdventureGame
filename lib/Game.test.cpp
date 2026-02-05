@@ -8,131 +8,179 @@
 #include <string>  // for basic_string, string
 #include <vector>  // for vector
 
-using adv_sk::Direction;
-using adv_sk::Game;
+namespace adv_sk::test {
 
-TEST(Game, start) {
-  Game game{};
-  game.start();
-  EXPECT_EQ(game.get_current_message(),
-            "You are in the Grand Hall. It is a vast, echoing chamber.");
-  EXPECT_EQ(game.get_current_location(), "GrandHall");
-}
+  class TestInputHandler final : public IInputHandler {
+   public:
+    Action get_action() override {
+      return _action;
+    }
+    void provide_directions(const std::vector<Direction>& directions) override {
+    }
+    Direction get_direction() override {
+      return _direction;
+    }
+    void provide_message(const std::string& message) override {
+      _message = message;
+    }
+    std::string get_item_name() override {
+      return _item_name;
+    }
+    // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
+    Action _action{Action::Quit};
+    Direction _direction{};
+    std::string _item_name{};
+    std::string _message{};
+    // NOLINTEND(misc-non-private-member-variables-in-classes)
+  };
 
-TEST(Game, moveNorth) {
-  Game game{};
-  game.start();
-  game.move(Direction::North);
-  EXPECT_EQ(game.get_current_message(),
-            "You are in the Armoury. Racks of dusty weapons line the walls.");
-  EXPECT_EQ(game.get_current_location(), "Armoury");
-}
+  TEST(Game, start) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler const* input_handler_ptr = input_handler.get();
+    Game const game{nullptr, std::move(input_handler)};
 
-TEST(Game, moveSouth) {
-  Game game{};
-  game.start();
-  game.move(Direction::North);
-  game.move(Direction::South);
-  EXPECT_EQ(game.get_current_message(),
-            "You are in the Grand Hall. It is a vast, echoing chamber.");
-  EXPECT_EQ(game.get_current_location(), "GrandHall");
-}
+    EXPECT_EQ(input_handler_ptr->_message,
+              "You are in the Grand Hall. It is a vast, echoing chamber.");
+    EXPECT_EQ(game.get_current_location(), "GrandHall");
+  }
 
-TEST(Game, availableDirections) {
-  Game game{};
-  game.start();
-  auto list = game.get_available_directions();
-  EXPECT_EQ(list.size(), 1);
-  EXPECT_EQ(list[0], Direction::North);
+  TEST(Game, moveNorth) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
 
-  game.move(Direction::North);
-  list = game.get_available_directions();
-  EXPECT_EQ(list.size(), 1);
-  EXPECT_EQ(list[0], Direction::South);
-}
+    input_handler_ptr->_direction = Direction::North;
+    game.move(Direction::North);
 
-TEST(Game, moveInWrongDirection) {
-  Game game{};
-  game.start();
+    EXPECT_EQ(input_handler_ptr->_message,
+              "You are in the Armoury. Racks of dusty weapons line the walls.");
+    EXPECT_EQ(game.get_current_location(), "Armoury");
+  }
 
-  game.move(Direction::South);
-  EXPECT_TRUE(game.get_current_message().find("Wrong direction") !=
-              std::string::npos);
-}
+  TEST(Game, moveSouth) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler const* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+    game.start();
+    game.move(Direction::North);
+    game.move(Direction::South);
+    EXPECT_EQ(input_handler_ptr->_message,
+              "You are in the Grand Hall. It is a vast, echoing chamber.");
+    EXPECT_EQ(game.get_current_location(), "GrandHall");
+  }
 
-TEST(Game, findItems) {
-  Game game{};
-  game.start();
+  TEST(Game, availableDirections) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler const* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+    game.start();
+    auto list = game.get_available_directions();
+    EXPECT_EQ(list.size(), 1);
+    EXPECT_EQ(list[0], Direction::North);
 
-  game.move(Direction::North);
-  game.investigate();
-  EXPECT_EQ(game.get_current_message(),
-            "You search the room. You found a rusty sword!\n");
-}
+    game.move(Direction::North);
+    list = game.get_available_directions();
+    EXPECT_EQ(list.size(), 1);
+    EXPECT_EQ(list[0], Direction::South);
+  }
 
-TEST(Game, collectItems) {
-  Game game{};
-  game.start();
+  TEST(Game, moveInWrongDirection) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler const* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+    game.start();
 
-  game.move(Direction::North);
-  game.investigate();
+    game.move(Direction::South);
+    EXPECT_TRUE(input_handler_ptr->_message.find("Wrong direction") !=
+                std::string::npos);
+  }
 
-  game.take_item("rusty sword");
-  game.investigate();
-  EXPECT_EQ(game.get_current_message(),
-            "You search the room. Nothing found!\n");
-}
+  TEST(Game, findItems) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler const* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+    game.start();
 
-TEST(Game, hasState) {
-  Game game{};
-  game.start();
+    game.move(Direction::North);
+    game.investigate();
+    EXPECT_EQ(input_handler_ptr->_message,
+              "You search the room. You found a rusty sword!\n");
+  }
 
-  game.move(Direction::North);
-  game.investigate();
+  TEST(Game, collectItems) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler const* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+    game.start();
 
-  game.take_item("rusty sword");
+    game.move(Direction::North);
+    game.investigate();
 
-  game.move(Direction::South);
-  game.move(Direction::North);
-  game.investigate();
+    game.take_item("rusty sword");
+    game.investigate();
+    EXPECT_EQ(input_handler_ptr->_message,
+              "You search the room. Nothing found!\n");
+  }
 
-  EXPECT_EQ(game.get_current_message(),
-            "You search the room. Nothing found!\n");
-}
+  TEST(Game, hasState) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler const* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+    game.start();
 
-TEST(Game, displayInventory) {
-  Game game{};
-  game.start();
+    game.move(Direction::North);
+    game.investigate();
 
-  game.move(Direction::North);
-  game.investigate();
-  game.take_item("rusty sword");
-  game.display_player_inventory();
-  EXPECT_EQ(game.get_current_message(),
-            "Your inventory contains: rusty sword.\n");
-}
+    game.take_item("rusty sword");
 
-TEST(Game, useItems) {
-  Game game{};
-  game.start();
+    game.move(Direction::South);
+    game.move(Direction::North);
+    game.investigate();
 
-  game.investigate();
-  game.take_item("golden chalice");
+    EXPECT_EQ(input_handler_ptr->_message,
+              "You search the room. Nothing found!\n");
+  }
 
-  game.use_item("golden chalice");
-  EXPECT_EQ(game.get_current_message(),
-            "You hold the golden chalice aloft. It glints in the light and "
-            "feels cool to the touch.\n");
-}
+  TEST(Game, displayInventory) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler const* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+    game.start();
 
-TEST(Game, dropItems) {
-  Game game{};
-  game.start();
+    game.move(Direction::North);
+    game.investigate();
+    game.take_item("rusty sword");
+    game.display_player_inventory();
+    EXPECT_EQ(input_handler_ptr->_message,
+              "Your inventory contains: rusty sword.\n");
+  }
 
-  game.investigate();
-  game.take_item("golden chalice");
+  TEST(Game, useItems) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler const* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+    game.start();
 
-  game.drop_item("golden chalice");
-  EXPECT_EQ(game.get_current_message(),
-            "You drop the golden chalice. It fades away in the darkness.\n");
-}
+    game.investigate();
+    game.take_item("golden chalice");
+
+    game.use_item("golden chalice");
+    EXPECT_EQ(input_handler_ptr->_message,
+              "You hold the golden chalice aloft. It glints in the light and "
+              "feels cool to the touch.\n");
+  }
+
+  TEST(Game, dropItems) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler const* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+    game.start();
+
+    game.investigate();
+    game.take_item("golden chalice");
+
+    game.drop_item("golden chalice");
+    EXPECT_EQ(input_handler_ptr->_message,
+              "You drop the golden chalice. It fades away in the darkness.\n");
+  }
+}  // namespace adv_sk::test

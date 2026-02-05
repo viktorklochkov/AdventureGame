@@ -46,9 +46,11 @@ namespace adv_sk {
     explicit Game(std::unique_ptr<Map> map,
                   std::unique_ptr<IInputHandler> input)
         : _map(std::move(map)), _input_handler(std::move(input)) {
+      init();
+      update_message(_map->get_welcome_message(_player->get_current_room()));
     }
 
-    void handle_user_action();
+    [[nodiscard]] bool handle_user_action();
 
     void start();
 
@@ -56,7 +58,7 @@ namespace adv_sk {
 
     void investigate();
 
-    void take_item(const std::string& item_name) const;
+    void take_item(const std::string& item_name);
 
     void display_player_inventory();
 
@@ -79,8 +81,6 @@ namespace adv_sk {
     }
 
    private:
-    void print_message() const;
-
     void init();
 
     void update_message(const std::string& message);
