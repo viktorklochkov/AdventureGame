@@ -5,6 +5,7 @@
 #include "gtest/gtest.h"
 
 #include <stdexcept>
+#include <string>  // for basic_string
 
 namespace adv_sk::test {
 

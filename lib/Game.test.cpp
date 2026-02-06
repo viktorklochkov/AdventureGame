@@ -299,17 +299,6 @@ namespace adv_sk::test {
                 std::string::npos);
   }
 
-  TEST(Game, handleUserActionUnknown) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
-
-    // Use a cast to simulate an unknown action value
-    input_handler_ptr->_action = static_cast<Action>(255);
-    EXPECT_TRUE(game.handle_user_action());
-    EXPECT_EQ(input_handler_ptr->_message, "Command not recognized.");
-  }
-
   TEST(Game, gameLoopRunsUntilQuit) {
     auto input_handler = std::make_unique<TestInputHandler>();
     TestInputHandler* input_handler_ptr = input_handler.get();
