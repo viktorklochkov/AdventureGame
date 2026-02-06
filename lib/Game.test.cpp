@@ -64,7 +64,6 @@ namespace adv_sk::test {
     auto input_handler = std::make_unique<TestInputHandler>();
     TestInputHandler const* input_handler_ptr = input_handler.get();
     Game game{nullptr, std::move(input_handler)};
-    game.start();
     game.move(Direction::North);
     game.move(Direction::South);
     EXPECT_EQ(input_handler_ptr->_message,
@@ -75,7 +74,6 @@ namespace adv_sk::test {
   TEST(Game, availableDirections) {
     auto input_handler = std::make_unique<TestInputHandler>();
     Game game{nullptr, std::move(input_handler)};
-    game.start();
     auto list = game.get_available_directions();
     EXPECT_EQ(list.size(), 1);
     EXPECT_EQ(list[0], Direction::North);
@@ -90,7 +88,6 @@ namespace adv_sk::test {
     auto input_handler = std::make_unique<TestInputHandler>();
     TestInputHandler const* input_handler_ptr = input_handler.get();
     Game game{nullptr, std::move(input_handler)};
-    game.start();
 
     game.move(Direction::South);
     EXPECT_TRUE(input_handler_ptr->_message.find("Wrong direction") !=
@@ -101,7 +98,6 @@ namespace adv_sk::test {
     auto input_handler = std::make_unique<TestInputHandler>();
     TestInputHandler const* input_handler_ptr = input_handler.get();
     Game game{nullptr, std::move(input_handler)};
-    game.start();
 
     game.move(Direction::North);
     game.investigate();
@@ -113,7 +109,6 @@ namespace adv_sk::test {
     auto input_handler = std::make_unique<TestInputHandler>();
     TestInputHandler const* input_handler_ptr = input_handler.get();
     Game game{nullptr, std::move(input_handler)};
-    game.start();
 
     game.move(Direction::North);
     game.investigate();
@@ -128,7 +123,6 @@ namespace adv_sk::test {
     auto input_handler = std::make_unique<TestInputHandler>();
     TestInputHandler const* input_handler_ptr = input_handler.get();
     Game game{nullptr, std::move(input_handler)};
-    game.start();
 
     game.move(Direction::North);
     game.investigate();
@@ -147,7 +141,6 @@ namespace adv_sk::test {
     auto input_handler = std::make_unique<TestInputHandler>();
     TestInputHandler const* input_handler_ptr = input_handler.get();
     Game game{nullptr, std::move(input_handler)};
-    game.start();
 
     game.move(Direction::North);
     game.investigate();
@@ -161,7 +154,6 @@ namespace adv_sk::test {
     auto input_handler = std::make_unique<TestInputHandler>();
     TestInputHandler const* input_handler_ptr = input_handler.get();
     Game game{nullptr, std::move(input_handler)};
-    game.start();
 
     game.investigate();
     game.take_item("golden chalice");
@@ -176,7 +168,6 @@ namespace adv_sk::test {
     auto input_handler = std::make_unique<TestInputHandler>();
     TestInputHandler const* input_handler_ptr = input_handler.get();
     Game game{nullptr, std::move(input_handler)};
-    game.start();
 
     game.investigate();
     game.take_item("golden chalice");

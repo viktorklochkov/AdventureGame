@@ -14,7 +14,6 @@ namespace adv_sk {
       case Direction::West:
         return Direction::East;
     }
-    return {};
   }
 
   std::string direction_to_string(Direction direction) {
@@ -28,8 +27,7 @@ namespace adv_sk {
       case Direction::West:
         return "West";
     }
-    return "";
-  };
+  }
   Direction string_to_direction(const std::string& direction) {
     if (direction == "North") {
       return Direction::North;
