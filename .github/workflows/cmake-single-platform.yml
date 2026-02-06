@@ -38,11 +38,11 @@ jobs:
 
     - name: Collect coverage
       run: |
-        lcov --capture --directory build/coverage --output-file coverage.info
+        lcov --capture --directory build/coverage --output-file coverage.info --ignore-errors mismatch
         # Remove external dependencies (googletest, system headers) from coverage
-        lcov --remove coverage.info '/usr/*' '*/build/_deps/*' '*/googletest/*' --output-file coverage.info
+        lcov --remove coverage.info '/usr/*' '*/build/_deps/*' '*/googletest/*' --output-file coverage.info --ignore-errors mismatch
         # Show coverage summary
-        lcov --list coverage.info
+        lcov --list coverage.info --ignore-errors mismatch
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
