@@ -1,6 +1,7 @@
 # AdventureGame project
 
 [![CMake on a single platform](https://github.com/viktorklochkov/AdventureGame/actions/workflows/cmake-single-platform.yml/badge.svg?branch=main)](https://github.com/viktorklochkov/AdventureGame/actions/workflows/cmake-single-platform.yml)
+[![codecov](https://codecov.io/gh/viktorklochkov/AdventureGame/branch/main/graph/badge.svg)](https://codecov.io/gh/viktorklochkov/AdventureGame)
 [![IWYU](https://github.com/viktorklochkov/AdventureGame/actions/workflows/iwyu.yml/badge.svg)](https://github.com/viktorklochkov/AdventureGame/actions/workflows/iwyu.yml)
 [![clang-tidy](https://github.com/viktorklochkov/AdventureGame/actions/workflows/clang-tidy.yml/badge.svg)](https://github.com/viktorklochkov/AdventureGame/actions/workflows/clang-tidy.yml)
 [![Clang Format Checker](https://github.com/viktorklochkov/AdventureGame/actions/workflows/clang-format.yml/badge.svg)](https://github.com/viktorklochkov/AdventureGame/actions/workflows/clang-format.yml)
