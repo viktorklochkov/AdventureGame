@@ -13,7 +13,11 @@ namespace adv_sk {
 
   class Player {
    public:
-    [[nodiscard]] std::vector<InventoryItem>& get_inventory() {
+    [[nodiscard]] const std::vector<InventoryItem>& get_inventory() const {
+      return _inventory;
+    }
+
+    [[nodiscard]] std::vector<InventoryItem>& get_mutable_inventory() {
       return _inventory;
     }
 
