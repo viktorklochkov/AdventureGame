@@ -176,4 +176,150 @@ namespace adv_sk::test {
     EXPECT_EQ(input_handler_ptr->_message,
               "You drop the golden chalice. It fades away in the darkness.\n");
   }
+
+  // Error case tests
+  TEST(Game, takeItemNotVisible) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler const* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+
+    // Try to take item without investigating first (item not visible)
+    game.take_item("golden chalice");
+    EXPECT_EQ(input_handler_ptr->_message,
+              "You can't take the golden chalice\n");
+  }
+
+  TEST(Game, takeItemNotExists) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler const* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+
+    game.investigate();
+    game.take_item("nonexistent item");
+    EXPECT_EQ(input_handler_ptr->_message,
+              "You can't take the nonexistent item\n");
+  }
+
+  TEST(Game, useItemNotInInventory) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler const* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+
+    game.use_item("nonexistent item");
+    EXPECT_EQ(input_handler_ptr->_message,
+              "You can't use the nonexistent item!\n");
+  }
+
+  TEST(Game, dropItemNotInInventory) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler const* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+
+    game.drop_item("nonexistent item");
+    EXPECT_EQ(input_handler_ptr->_message,
+              "You can't drop the nonexistent item!\n");
+  }
+
+  // Game loop tests via handle_user_action
+  TEST(Game, handleUserActionQuit) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+
+    input_handler_ptr->_action = Action::Quit;
+    EXPECT_FALSE(game.handle_user_action());
+  }
+
+  TEST(Game, handleUserActionMove) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+
+    input_handler_ptr->_action = Action::Move;
+    input_handler_ptr->_direction = Direction::North;
+    EXPECT_TRUE(game.handle_user_action());
+    EXPECT_EQ(game.get_current_location(), "Armoury");
+  }
+
+  TEST(Game, handleUserActionInvestigate) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+
+    input_handler_ptr->_action = Action::Investigate;
+    EXPECT_TRUE(game.handle_user_action());
+    EXPECT_TRUE(input_handler_ptr->_message.find("You search the room") !=
+                std::string::npos);
+  }
+
+  TEST(Game, handleUserActionTakeItem) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+
+    game.investigate();  // Make items visible
+    input_handler_ptr->_action = Action::TakeItem;
+    input_handler_ptr->_item_name = "golden chalice";
+    EXPECT_TRUE(game.handle_user_action());
+    EXPECT_EQ(input_handler_ptr->_message, "You take the golden chalice\n");
+  }
+
+  TEST(Game, handleUserActionUseItem) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+
+    game.investigate();
+    game.take_item("golden chalice");
+    input_handler_ptr->_action = Action::UseItem;
+    input_handler_ptr->_item_name = "golden chalice";
+    EXPECT_TRUE(game.handle_user_action());
+  }
+
+  TEST(Game, handleUserActionDropItem) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+
+    game.investigate();
+    game.take_item("golden chalice");
+    input_handler_ptr->_action = Action::DropItem;
+    input_handler_ptr->_item_name = "golden chalice";
+    EXPECT_TRUE(game.handle_user_action());
+  }
+
+  TEST(Game, handleUserActionDisplayInventory) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+
+    input_handler_ptr->_action = Action::DisplayInventory;
+    EXPECT_TRUE(game.handle_user_action());
+    EXPECT_TRUE(input_handler_ptr->_message.find("Your inventory contains") !=
+                std::string::npos);
+  }
+
+  TEST(Game, handleUserActionUnknown) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+
+    // Use a cast to simulate an unknown action value
+    input_handler_ptr->_action = static_cast<Action>(255);
+    EXPECT_TRUE(game.handle_user_action());
+    EXPECT_EQ(input_handler_ptr->_message, "Command not recognized.");
+  }
+
+  TEST(Game, gameLoopRunsUntilQuit) {
+    auto input_handler = std::make_unique<TestInputHandler>();
+    TestInputHandler* input_handler_ptr = input_handler.get();
+    Game game{nullptr, std::move(input_handler)};
+
+    // First action: investigate, then quit
+    input_handler_ptr->_action = Action::Quit;
+    game.start();  // Should return immediately after Quit action
+    // If we get here without hanging, the test passes
+    EXPECT_EQ(game.get_current_location(), "GrandHall");
+  }
+
 }  // namespace adv_sk::test
