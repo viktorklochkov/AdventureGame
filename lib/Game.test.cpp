@@ -1,314 +1,345 @@
-// Copyright (c) 2025 Dr. Matthias Hölzl. All rights reserved.
+// Game London-style unit tests
 
 #include "Game.hpp"
 
-#include "Direction.hpp"  // for Direction
-#include "Map.hpp"        // for Map
-#include "gtest/gtest.h"  // for Message, TestPartResult, AssertionResult
+#include "Direction.hpp"         // for Direction
+#include "IInputHandler.hpp"     // for Action, IInputHandler
+#include "IMap.hpp"              // for IMap
+#include "IPlayer.hpp"           // for IPlayer
+#include "Inventory.hpp"         // for InventoryItem
+#include "MockInputHandler.hpp"  // for MockInputHandler
+#include "MockMap.hpp"           // for MockMap
+#include "MockPlayer.hpp"        // for MockPlayer
+#include "Room.hpp"              // for Room
+#include "Types.hpp"             // for RoomName
+#include "gmock/gmock.h"         // for NiceMock, Return, ReturnRef
+#include "gtest/gtest.h"         // for TEST_F, EXPECT_CALL
 
-#include <memory>   // for unique_ptr, make_unique
-#include <string>   // for basic_string, string
-#include <utility>  // for move
-#include <vector>   // for vector
+#include <memory>    // for unique_ptr, make_unique
+#include <optional>  // for optional, nullopt
+#include <string>    // for string
+#include <utility>   // for move
+#include <vector>    // for vector
 
 namespace adv_sk::test {
 
-  class TestInputHandler final : public IInputHandler {
-   public:
-    Action get_action() override {
-      return _action;
+  using ::testing::_;
+  using ::testing::NiceMock;
+  using ::testing::Return;
+  using ::testing::ReturnRef;
+
+  // NOLINTBEGIN(cppcoreguidelines-non-private-member-variables-in-classes,misc-non-private-member-variables-in-classes)
+  class GameTest : public ::testing::Test {
+   protected:
+    void SetUp() override {
+      auto map = std::make_unique<NiceMock<MockMap>>();
+      auto player = std::make_unique<NiceMock<MockPlayer>>();
+      auto input = std::make_unique<NiceMock<MockInputHandler>>();
+
+      mock_map = map.get();
+      mock_player = player.get();
+      mock_input = input.get();
+
+      ON_CALL(*mock_player, get_current_room())
+          .WillByDefault(Return("GrandHall"));
+      ON_CALL(*mock_map, get_welcome_message(_))
+          .WillByDefault(Return("Welcome to GrandHall"));
+
+      game = std::make_unique<Game>(std::move(map), std::move(player),
+                                    std::move(input));
     }
-    void provide_directions(const std::vector<Direction>& directions) override {
-    }
-    Direction get_direction() override {
-      return _direction;
-    }
-    void provide_message(const std::string& message) override {
-      _message = message;
-    }
-    std::string get_item_name() override {
-      return _item_name;
-    }
-    // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
-    Action _action{Action::Quit};
-    Direction _direction{};
-    std::string _item_name;
-    std::string _message;
-    // NOLINTEND(misc-non-private-member-variables-in-classes)
+
+    NiceMock<MockMap>* mock_map = nullptr;
+    NiceMock<MockPlayer>* mock_player = nullptr;
+    NiceMock<MockInputHandler>* mock_input = nullptr;
+    std::unique_ptr<Game> game;
   };
+  // NOLINTEND(cppcoreguidelines-non-private-member-variables-in-classes,misc-non-private-member-variables-in-classes)
 
-  TEST(Game, start) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler const* input_handler_ptr = input_handler.get();
-    Game const game{nullptr, std::move(input_handler)};
+  TEST(GameConstruction, setsStartingRoomAndSendsWelcomeMessage) {
+    auto map = std::make_unique<NiceMock<MockMap>>();
+    auto player = std::make_unique<NiceMock<MockPlayer>>();
+    auto input = std::make_unique<NiceMock<MockInputHandler>>();
+    auto* player_ptr = player.get();
+    auto* map_ptr = map.get();
+    auto* input_ptr = input.get();
 
-    EXPECT_EQ(input_handler_ptr->_message,
-              "You are in the Grand Hall. It is a vast, echoing chamber.");
-    EXPECT_EQ(game.get_current_location(), "GrandHall");
+    ON_CALL(*player_ptr, get_current_room()).WillByDefault(Return("GrandHall"));
+    ON_CALL(*map_ptr, get_welcome_message(_)).WillByDefault(Return("Welcome"));
+
+    EXPECT_CALL(*player_ptr, change_room("GrandHall")).Times(1);
+    EXPECT_CALL(*map_ptr, get_welcome_message("GrandHall")).Times(1);
+    EXPECT_CALL(*input_ptr, provide_message("Welcome")).Times(1);
+
+    const Game game_obj(std::move(map), std::move(player), std::move(input));
   }
 
-  TEST(Game, moveNorth) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  // --- move() tests ---
 
-    input_handler_ptr->_direction = Direction::North;
-    game.move(Direction::North);
+  TEST_F(GameTest, moveToValidRoomChangesPlayerRoom) {
+    EXPECT_CALL(*mock_player, get_current_room())
+        .WillOnce(Return("GrandHall"))
+        .WillOnce(Return("Armoury"));
+    EXPECT_CALL(*mock_map, next_room("GrandHall", Direction::North))
+        .WillOnce(Return(std::optional<RoomName>("Armoury")));
+    EXPECT_CALL(*mock_player, change_room("Armoury"));
+    EXPECT_CALL(*mock_map, get_welcome_message("Armoury"))
+        .WillOnce(Return("Welcome to Armoury"));
+    EXPECT_CALL(*mock_input, provide_message("Welcome to Armoury"));
 
-    EXPECT_EQ(input_handler_ptr->_message,
-              "You are in the Armoury. Racks of dusty weapons line the walls.");
-    EXPECT_EQ(game.get_current_location(), "Armoury");
+    game->move(Direction::North);
   }
 
-  TEST(Game, moveSouth) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler const* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
-    game.move(Direction::North);
-    game.move(Direction::South);
-    EXPECT_EQ(input_handler_ptr->_message,
-              "You are in the Grand Hall. It is a vast, echoing chamber.");
-    EXPECT_EQ(game.get_current_location(), "GrandHall");
+  TEST_F(GameTest, moveToInvalidDirectionShowsError) {
+    EXPECT_CALL(*mock_player, get_current_room()).WillOnce(Return("GrandHall"));
+    EXPECT_CALL(*mock_map, next_room("GrandHall", Direction::South))
+        .WillOnce(Return(std::nullopt));
+    EXPECT_CALL(*mock_input, provide_message("Wrong direction!\n"));
+
+    game->move(Direction::South);
   }
 
-  TEST(Game, availableDirections) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    Game game{nullptr, std::move(input_handler)};
-    auto list = game.get_available_directions();
-    EXPECT_EQ(list.size(), 1);
-    EXPECT_EQ(list[0], Direction::North);
+  // --- investigate() tests ---
 
-    game.move(Direction::North);
-    list = game.get_available_directions();
-    EXPECT_EQ(list.size(), 1);
-    EXPECT_EQ(list[0], Direction::South);
+  TEST_F(GameTest, investigateRevealsItems) {
+    Room room("TestRoom", "msg", {InventoryItem{.name = "sword"}});
+    EXPECT_CALL(*mock_player, get_current_room()).WillOnce(Return("TestRoom"));
+    EXPECT_CALL(*mock_map, get_room("TestRoom")).WillOnce(ReturnRef(room));
+    EXPECT_CALL(*mock_input,
+                provide_message("You search the room. You found a sword!\n"));
+
+    game->investigate();
+    EXPECT_TRUE(room.inventory()[0].is_visible);
   }
 
-  TEST(Game, moveInWrongDirection) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler const* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  TEST_F(GameTest, investigateEmptyRoomShowsNothing) {
+    Room room("TestRoom", "msg");
+    EXPECT_CALL(*mock_player, get_current_room()).WillOnce(Return("TestRoom"));
+    EXPECT_CALL(*mock_map, get_room("TestRoom")).WillOnce(ReturnRef(room));
+    EXPECT_CALL(*mock_input,
+                provide_message("You search the room. Nothing found!\n"));
 
-    game.move(Direction::South);
-    EXPECT_TRUE(input_handler_ptr->_message.find("Wrong direction") !=
-                std::string::npos);
+    game->investigate();
   }
 
-  TEST(Game, findItems) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler const* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  // --- take_item() tests ---
 
-    game.move(Direction::North);
-    game.investigate();
-    EXPECT_EQ(input_handler_ptr->_message,
-              "You search the room. You found a rusty sword!\n");
+  TEST_F(GameTest, takeVisibleItemAddsToPlayerInventory) {
+    const InventoryItem sword{
+        .name = "sword", .use_message = "", .is_visible = true};
+    Room room("R", "", {sword});
+    EXPECT_CALL(*mock_player, get_current_room()).WillOnce(Return("R"));
+    EXPECT_CALL(*mock_map, get_room("R")).WillOnce(ReturnRef(room));
+    EXPECT_CALL(*mock_input, provide_message("You take the sword\n"));
+    EXPECT_CALL(*mock_player, add_to_inventory(_));
+
+    game->take_item("sword");
+    EXPECT_TRUE(room.inventory().empty());
   }
 
-  TEST(Game, collectItems) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler const* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  TEST_F(GameTest, takeInvisibleItemFails) {
+    const InventoryItem sword{
+        .name = "sword", .use_message = "", .is_visible = false};
+    Room room("R", "", {sword});
+    EXPECT_CALL(*mock_player, get_current_room()).WillOnce(Return("R"));
+    EXPECT_CALL(*mock_map, get_room("R")).WillOnce(ReturnRef(room));
+    EXPECT_CALL(*mock_input, provide_message("You can't take the sword\n"));
 
-    game.move(Direction::North);
-    game.investigate();
-
-    game.take_item("rusty sword");
-    game.investigate();
-    EXPECT_EQ(input_handler_ptr->_message,
-              "You search the room. Nothing found!\n");
+    game->take_item("sword");
   }
 
-  TEST(Game, hasState) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler const* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  TEST_F(GameTest, takeNonexistentItemFails) {
+    Room room("R", "");
+    EXPECT_CALL(*mock_player, get_current_room()).WillOnce(Return("R"));
+    EXPECT_CALL(*mock_map, get_room("R")).WillOnce(ReturnRef(room));
+    EXPECT_CALL(*mock_input, provide_message("You can't take the ghost\n"));
 
-    game.move(Direction::North);
-    game.investigate();
-
-    game.take_item("rusty sword");
-
-    game.move(Direction::South);
-    game.move(Direction::North);
-    game.investigate();
-
-    EXPECT_EQ(input_handler_ptr->_message,
-              "You search the room. Nothing found!\n");
+    game->take_item("ghost");
   }
 
-  TEST(Game, displayInventory) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler const* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  // --- use_item() tests ---
 
-    game.move(Direction::North);
-    game.investigate();
-    game.take_item("rusty sword");
-    game.display_player_inventory();
-    EXPECT_EQ(input_handler_ptr->_message,
-              "Your inventory contains: rusty sword.\n");
+  TEST_F(GameTest, useItemInInventoryShowsMessage) {
+    std::vector<InventoryItem> inv{{.name = "potion",
+                                    .use_message = "You drink it!\n",
+                                    .is_visible = true}};
+    EXPECT_CALL(*mock_player, get_mutable_inventory()).WillOnce(ReturnRef(inv));
+    EXPECT_CALL(*mock_input, provide_message("You drink it!\n"));
+
+    game->use_item("potion");
+    EXPECT_TRUE(inv.empty());
   }
 
-  TEST(Game, useItems) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler const* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  TEST_F(GameTest, useItemNotInInventoryFails) {
+    std::vector<InventoryItem> inv;
+    EXPECT_CALL(*mock_player, get_mutable_inventory()).WillOnce(ReturnRef(inv));
+    EXPECT_CALL(*mock_input, provide_message("You can't use the ghost!\n"));
 
-    game.investigate();
-    game.take_item("golden chalice");
-
-    game.use_item("golden chalice");
-    EXPECT_EQ(input_handler_ptr->_message,
-              "You hold the golden chalice aloft. It glints in the light and "
-              "feels cool to the touch.\n");
+    game->use_item("ghost");
   }
 
-  TEST(Game, dropItems) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler const* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  // --- drop_item() tests ---
 
-    game.investigate();
-    game.take_item("golden chalice");
+  TEST_F(GameTest, dropItemMovesToRoom) {
+    const InventoryItem sword{
+        .name = "sword", .use_message = "", .is_visible = true};
+    std::vector<InventoryItem> inv{sword};
+    Room room("R");
+    EXPECT_CALL(*mock_player, get_mutable_inventory()).WillOnce(ReturnRef(inv));
+    EXPECT_CALL(*mock_player, get_current_room()).WillOnce(Return("R"));
+    EXPECT_CALL(*mock_map, get_room("R")).WillOnce(ReturnRef(room));
+    EXPECT_CALL(*mock_input,
+                provide_message(
+                    "You drop the sword. It fades away in the darkness.\n"));
 
-    game.drop_item("golden chalice");
-    EXPECT_EQ(input_handler_ptr->_message,
-              "You drop the golden chalice. It fades away in the darkness.\n");
+    game->drop_item("sword");
+    EXPECT_TRUE(inv.empty());
+    EXPECT_EQ(room.inventory().size(), 1);
   }
 
-  // Error case tests
-  TEST(Game, takeItemNotVisible) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler const* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  TEST_F(GameTest, dropItemNotInInventoryFails) {
+    std::vector<InventoryItem> inv;
+    EXPECT_CALL(*mock_player, get_mutable_inventory()).WillOnce(ReturnRef(inv));
+    EXPECT_CALL(*mock_input, provide_message("You can't drop the ghost!\n"));
 
-    // Try to take item without investigating first (item not visible)
-    game.take_item("golden chalice");
-    EXPECT_EQ(input_handler_ptr->_message,
-              "You can't take the golden chalice\n");
+    game->drop_item("ghost");
   }
 
-  TEST(Game, takeItemNotExists) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler const* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  // --- display_player_inventory() tests ---
 
-    game.investigate();
-    game.take_item("nonexistent item");
-    EXPECT_EQ(input_handler_ptr->_message,
-              "You can't take the nonexistent item\n");
+  TEST_F(GameTest, displayInventoryShowsItems) {
+    std::vector<InventoryItem> inv{{.name = "sword"}, {.name = "shield"}};
+    EXPECT_CALL(*mock_player, get_inventory()).WillOnce(ReturnRef(inv));
+    EXPECT_CALL(*mock_input,
+                provide_message("Your inventory contains: sword shield.\n"));
+
+    game->display_player_inventory();
   }
 
-  TEST(Game, useItemNotInInventory) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler const* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  TEST_F(GameTest, displayEmptyInventory) {
+    std::vector<InventoryItem> inv;
+    EXPECT_CALL(*mock_player, get_inventory()).WillOnce(ReturnRef(inv));
+    EXPECT_CALL(*mock_input, provide_message("Your inventory contains:.\n"));
 
-    game.use_item("nonexistent item");
-    EXPECT_EQ(input_handler_ptr->_message,
-              "You can't use the nonexistent item!\n");
+    game->display_player_inventory();
   }
 
-  TEST(Game, dropItemNotInInventory) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler const* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  // --- get_available_directions() tests ---
 
-    game.drop_item("nonexistent item");
-    EXPECT_EQ(input_handler_ptr->_message,
-              "You can't drop the nonexistent item!\n");
+  TEST_F(GameTest, getAvailableDirectionsReturnsValidOnes) {
+    EXPECT_CALL(*mock_player, get_current_room())
+        .WillRepeatedly(Return("GrandHall"));
+    EXPECT_CALL(*mock_map, next_room("GrandHall", Direction::North))
+        .WillOnce(Return(std::optional<RoomName>("Armoury")));
+    EXPECT_CALL(*mock_map, next_room("GrandHall", Direction::South))
+        .WillOnce(Return(std::nullopt));
+    EXPECT_CALL(*mock_map, next_room("GrandHall", Direction::East))
+        .WillOnce(Return(std::nullopt));
+    EXPECT_CALL(*mock_map, next_room("GrandHall", Direction::West))
+        .WillOnce(Return(std::nullopt));
+
+    auto dirs = game->get_available_directions();
+    ASSERT_EQ(dirs.size(), 1);
+    EXPECT_EQ(dirs[0], Direction::North);
   }
 
-  // Game loop tests via handle_user_action
-  TEST(Game, handleUserActionQuit) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  TEST_F(GameTest, getAvailableDirectionsReturnsEmpty) {
+    EXPECT_CALL(*mock_player, get_current_room())
+        .WillRepeatedly(Return("Isolated"));
+    EXPECT_CALL(*mock_map, next_room("Isolated", _))
+        .WillRepeatedly(Return(std::nullopt));
 
-    input_handler_ptr->_action = Action::Quit;
-    EXPECT_FALSE(game.handle_user_action());
+    auto dirs = game->get_available_directions();
+    EXPECT_TRUE(dirs.empty());
   }
 
-  TEST(Game, handleUserActionMove) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  // --- get_current_location() ---
 
-    input_handler_ptr->_action = Action::Move;
-    input_handler_ptr->_direction = Direction::North;
-    EXPECT_TRUE(game.handle_user_action());
-    EXPECT_EQ(game.get_current_location(), "Armoury");
+  TEST_F(GameTest, getCurrentLocationDelegatesToPlayer) {
+    EXPECT_CALL(*mock_player, get_current_room()).WillOnce(Return("TestRoom"));
+
+    EXPECT_EQ(game->get_current_location(), "TestRoom");
   }
 
-  TEST(Game, handleUserActionInvestigate) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  // --- handle_user_action() tests ---
 
-    input_handler_ptr->_action = Action::Investigate;
-    EXPECT_TRUE(game.handle_user_action());
-    EXPECT_TRUE(input_handler_ptr->_message.find("You search the room") !=
-                std::string::npos);
+  TEST_F(GameTest, handleUserActionQuitReturnsFalse) {
+    EXPECT_CALL(*mock_input, get_action()).WillOnce(Return(Action::Quit));
+
+    EXPECT_FALSE(game->handle_user_action());
   }
 
-  TEST(Game, handleUserActionTakeItem) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  TEST_F(GameTest, handleUserActionMoveCallsSequence) {
+    EXPECT_CALL(*mock_input, get_action()).WillOnce(Return(Action::Move));
+    EXPECT_CALL(*mock_input, provide_directions(_));
+    EXPECT_CALL(*mock_input, get_direction())
+        .WillOnce(Return(Direction::North));
+    EXPECT_CALL(*mock_player, get_current_room())
+        .WillRepeatedly(Return("GrandHall"));
+    EXPECT_CALL(*mock_map, next_room(_, _))
+        .WillRepeatedly(Return(std::nullopt));
 
-    game.investigate();  // Make items visible
-    input_handler_ptr->_action = Action::TakeItem;
-    input_handler_ptr->_item_name = "golden chalice";
-    EXPECT_TRUE(game.handle_user_action());
-    EXPECT_EQ(input_handler_ptr->_message, "You take the golden chalice\n");
+    EXPECT_TRUE(game->handle_user_action());
   }
 
-  TEST(Game, handleUserActionUseItem) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  TEST_F(GameTest, handleUserActionInvestigate) {
+    Room room("R");
+    EXPECT_CALL(*mock_input, get_action())
+        .WillOnce(Return(Action::Investigate));
+    EXPECT_CALL(*mock_player, get_current_room()).WillRepeatedly(Return("R"));
+    EXPECT_CALL(*mock_map, get_room("R")).WillOnce(ReturnRef(room));
 
-    game.investigate();
-    game.take_item("golden chalice");
-    input_handler_ptr->_action = Action::UseItem;
-    input_handler_ptr->_item_name = "golden chalice";
-    EXPECT_TRUE(game.handle_user_action());
+    EXPECT_TRUE(game->handle_user_action());
   }
 
-  TEST(Game, handleUserActionDropItem) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  TEST_F(GameTest, handleUserActionTakeItem) {
+    Room room("R");
+    EXPECT_CALL(*mock_input, get_action()).WillOnce(Return(Action::TakeItem));
+    EXPECT_CALL(*mock_input, get_item_name()).WillOnce(Return("sword"));
+    EXPECT_CALL(*mock_player, get_current_room()).WillRepeatedly(Return("R"));
+    EXPECT_CALL(*mock_map, get_room("R")).WillOnce(ReturnRef(room));
 
-    game.investigate();
-    game.take_item("golden chalice");
-    input_handler_ptr->_action = Action::DropItem;
-    input_handler_ptr->_item_name = "golden chalice";
-    EXPECT_TRUE(game.handle_user_action());
+    EXPECT_TRUE(game->handle_user_action());
   }
 
-  TEST(Game, handleUserActionDisplayInventory) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  TEST_F(GameTest, handleUserActionUseItem) {
+    std::vector<InventoryItem> inv;
+    EXPECT_CALL(*mock_input, get_action()).WillOnce(Return(Action::UseItem));
+    EXPECT_CALL(*mock_input, get_item_name()).WillOnce(Return("potion"));
+    EXPECT_CALL(*mock_player, get_mutable_inventory()).WillOnce(ReturnRef(inv));
 
-    input_handler_ptr->_action = Action::DisplayInventory;
-    EXPECT_TRUE(game.handle_user_action());
-    EXPECT_TRUE(input_handler_ptr->_message.find("Your inventory contains") !=
-                std::string::npos);
+    EXPECT_TRUE(game->handle_user_action());
   }
 
-  TEST(Game, gameLoopRunsUntilQuit) {
-    auto input_handler = std::make_unique<TestInputHandler>();
-    TestInputHandler* input_handler_ptr = input_handler.get();
-    Game game{nullptr, std::move(input_handler)};
+  TEST_F(GameTest, handleUserActionDropItem) {
+    std::vector<InventoryItem> inv;
+    EXPECT_CALL(*mock_input, get_action()).WillOnce(Return(Action::DropItem));
+    EXPECT_CALL(*mock_input, get_item_name()).WillOnce(Return("sword"));
+    EXPECT_CALL(*mock_player, get_mutable_inventory()).WillOnce(ReturnRef(inv));
 
-    // First action: investigate, then quit
-    input_handler_ptr->_action = Action::Quit;
-    game.start();  // Should return immediately after Quit action
-    // If we get here without hanging, the test passes
-    EXPECT_EQ(game.get_current_location(), "GrandHall");
+    EXPECT_TRUE(game->handle_user_action());
+  }
+
+  TEST_F(GameTest, handleUserActionDisplayInventory) {
+    std::vector<InventoryItem> inv;
+    EXPECT_CALL(*mock_input, get_action())
+        .WillOnce(Return(Action::DisplayInventory));
+    EXPECT_CALL(*mock_player, get_inventory()).WillOnce(ReturnRef(inv));
+
+    EXPECT_TRUE(game->handle_user_action());
+  }
+
+  // --- start() tests ---
+
+  TEST_F(GameTest, startReturnsImmediatelyOnQuit) {
+    EXPECT_CALL(*mock_input, get_action()).WillOnce(Return(Action::Quit));
+
+    game->start();
+  }
+
+  TEST(GameDefaultConstruction, startWithNullInputReturns) {
+    Game empty_game;
+    empty_game.start();
   }
 
 }  // namespace adv_sk::test

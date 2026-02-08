@@ -3,33 +3,35 @@
 //
 #pragma once
 
-#include "Inventory.hpp"
-#include "Room.hpp"
+#include "IPlayer.hpp"    // for IPlayer
+#include "Inventory.hpp"  // for InventoryItem
+#include "Types.hpp"      // for RoomName
 
-#include <string>
-#include <vector>
+#include <string>  // for string
+#include <vector>  // for vector
 
 namespace adv_sk {
 
-  class Player {
+  class Player : public IPlayer {
    public:
-    [[nodiscard]] const std::vector<InventoryItem>& get_inventory() const {
+    [[nodiscard]] const std::vector<InventoryItem>& get_inventory()
+        const override {
       return _inventory;
     }
 
-    [[nodiscard]] std::vector<InventoryItem>& get_mutable_inventory() {
+    [[nodiscard]] std::vector<InventoryItem>& get_mutable_inventory() override {
       return _inventory;
     }
 
-    void add_to_inventory(const InventoryItem& item) {
+    void add_to_inventory(const InventoryItem& item) override {
       _inventory.push_back(item);
     }
 
-    [[nodiscard]] RoomName get_current_room() const {
+    [[nodiscard]] RoomName get_current_room() const override {
       return _current_room;
     }
 
-    void change_room(const RoomName& room) {
+    void change_room(const RoomName& room) override {
       _current_room = room;
     }
 
@@ -37,4 +39,5 @@ namespace adv_sk {
     RoomName _current_room{};
     std::vector<InventoryItem> _inventory{};
   };
+
 }  // namespace adv_sk

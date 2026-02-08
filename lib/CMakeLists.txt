@@ -16,9 +16,13 @@ if (BUILD_TESTS)
     enable_testing()
     set(TEST_SOURCES
             Game.test.cpp
-            Direction.test.cpp)
+            Direction.test.cpp
+            Room.test.cpp
+            Player.test.cpp
+            Map.test.cpp
+            ConsoleInputHandler.test.cpp)
 
     add_executable(GameLogicTests ${TEST_SOURCES})
-    target_link_libraries(GameLogicTests PRIVATE GameLogic gtest_main)
+    target_link_libraries(GameLogicTests PRIVATE GameLogic gtest_main gmock)
     gtest_discover_tests(GameLogicTests TEST_PREFIX GameLogic)
 endif ()

@@ -4,49 +4,28 @@
 
 #pragma once
 
-#include "Direction.hpp"  // for Direction
-#include "Map.hpp"        // for Map
-#include "Player.hpp"     // for Player
-#include "Room.hpp"       // for RoomName
+#include "Direction.hpp"      // for Direction
+#include "IInputHandler.hpp"  // for IInputHandler, Action
+#include "IMap.hpp"           // for IMap
+#include "IPlayer.hpp"        // for IPlayer
+#include "Types.hpp"          // for RoomName
 
-#include <cstdint>  // for uint8_t
 #include <memory>   // for unique_ptr
-#include <string>   // for basic_string, string
+#include <string>   // for string
 #include <utility>  // for move
 #include <vector>   // for vector
 
 namespace adv_sk {
 
-  enum class Action : std::uint8_t {
-    Move,
-    Investigate,
-    TakeItem,
-    DisplayInventory,
-    UseItem,
-    DropItem,
-    Quit,
-  };
-
-  class IInputHandler {
-   public:
-    virtual ~IInputHandler() = default;
-
-    virtual Action get_action() = 0;
-    virtual void provide_directions(
-        const std::vector<Direction>& directions) = 0;
-    virtual Direction get_direction() = 0;
-    virtual std::string get_item_name() = 0;
-
-    virtual void provide_message(const std::string& message) = 0;
-  };
-
   class Game {
    public:
     Game() = default;
-    explicit Game(std::unique_ptr<Map> map,
+    explicit Game(std::unique_ptr<IMap> map, std::unique_ptr<IPlayer> player,
                   std::unique_ptr<IInputHandler> input)
-        : _map(std::move(map)), _input_handler(std::move(input)) {
-      init();
+        : _map(std::move(map)),
+          _player(std::move(player)),
+          _input_handler(std::move(input)) {
+      _player->change_room("GrandHall");
       update_message(_map->get_welcome_message(_player->get_current_room()));
     }
 
@@ -76,19 +55,14 @@ namespace adv_sk {
       return _player->get_current_room();
     }
 
-    [[nodiscard]] const Player& player() const {
-      return *_player;
-    }
-
    private:
-    void init();
-
     void update_message(const std::string& message);
 
-    std::unique_ptr<Map> _map{nullptr};
-    std::unique_ptr<Player> _player{std::make_unique<Player>()};
+    std::unique_ptr<IMap> _map{nullptr};
+    std::unique_ptr<IPlayer> _player{nullptr};
     std::unique_ptr<IInputHandler> _input_handler{nullptr};
 
     std::string _current_message{};
   };
+
 }  // namespace adv_sk
