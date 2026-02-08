@@ -5,6 +5,7 @@
 #include "Game.hpp"
 
 #include "Inventory.hpp"  // for InventoryItem
+#include "Room.hpp"       // for Room (returned by IMap::get_room)
 
 #include <array>     // for array
 #include <format>    // for format
@@ -157,14 +158,6 @@ namespace adv_sk {
     return result;
   }
 
-  void Game::init() {
-    // default map
-    if (_map == nullptr) {
-      _map = create_map();
-    }
-    _player->change_room("GrandHall");
-  }
-
   void Game::update_message(const std::string& message) {
     if (_input_handler) {
       _input_handler->provide_message(message);
@@ -172,4 +165,5 @@ namespace adv_sk {
       _current_message = message;
     }
   }
+
 }  // namespace adv_sk

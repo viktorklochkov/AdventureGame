@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Inventory.hpp"
+#include "Types.hpp"  // for RoomName
 
 #include <cstdint>  // for uint8_t
 #include <optional>
@@ -12,8 +13,6 @@
 namespace adv_sk {
 
   enum class Direction : std::uint8_t;
-
-  using RoomName = std::string;
 
   struct RoomConnections {
     void add(Direction direction, const RoomName& room) {

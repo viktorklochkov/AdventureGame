@@ -4,30 +4,29 @@
 
 #pragma once
 
-#include "Room.hpp"
+#include "IMap.hpp"   // for IMap
+#include "Room.hpp"   // for Room, RoomConnections
+#include "Types.hpp"  // for RoomName
 
-#include <cstdint>  // for uint8_t
-#include <memory>
-#include <optional>
-#include <string>
-#include <unordered_map>
-#include <vector>  // for vector
+#include <memory>         // for unique_ptr
+#include <string>         // for string
+#include <unordered_map>  // for unordered_map
+#include <vector>         // for vector
 
 namespace adv_sk {
 
-  enum class Direction : std::uint8_t;
-
-  class Map {
+  class Map : public IMap {
    public:
     Map(const std::vector<Room>& rooms,
         const std::unordered_map<RoomName, RoomConnections>& connections);
 
     std::optional<RoomName> next_room(const RoomName& current_room,
-                                      Direction direction);
+                                      Direction direction) override;
 
-    [[nodiscard]] std::string get_welcome_message(const RoomName& room) const;
+    [[nodiscard]] std::string get_welcome_message(
+        const RoomName& room) const override;
 
-    [[nodiscard]] Room& get_room(const RoomName& room) {
+    [[nodiscard]] Room& get_room(const RoomName& room) override {
       return _rooms.at(room);
     }
 
