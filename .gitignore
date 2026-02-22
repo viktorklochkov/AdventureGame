@@ -1,3 +1,5 @@
 .idea/*
 cmake-build-*
 build-export/*
+build/
+.DS_Store
