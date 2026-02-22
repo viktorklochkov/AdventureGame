@@ -44,30 +44,66 @@ namespace adv_sk {
   }
 
   std::unique_ptr<adv_sk::Map> create_map() {
-    InventoryItem const sword{
+    const InventoryItem sword{
         .name = "rusty sword",
-        .use_message = "You swing the rusty sword. The blade holds, but barely.\n"};
-    InventoryItem const chalice(
-        "golden chalice",
-        "You hold the golden chalice aloft. It glints in the "
-        "light and feels cool to the touch.\n");
+        .use_message =
+            "You swing the rusty sword. The blade holds, but barely.\n"};
+    const InventoryItem chalice{
+        .name = "golden chalice",
+        .use_message = "The chalice gleams. It belongs on the throne.\n"};
+    const InventoryItem tome{
+        .name = "old tome",
+        .use_message =
+            "The tome describes a hidden cellar beneath the kitchen.\n"};
+    const InventoryItem key{
+        .name = "iron key",
+        .use_message = "The key is cold and heavy in your hand.\n"};
+    const InventoryItem pendant{
+        .name = "silver pendant",
+        .use_message = "The pendant pulses with faint warmth.\n"};
 
-    Room const grand_hall(
+    const Room grand_hall(
         "GrandHall",
         "You are in the Grand Hall. It is a vast, echoing chamber.", {chalice});
-    Room const armory(
+    const Room armoury(
         "Armoury",
         "You are in the Armoury. Racks of dusty weapons line the walls.",
         {sword});
-    RoomConnections grand_hall_connection;
-    grand_hall_connection.add(Direction::North, "Armoury");
+    const Room library(
+        "Library",
+        "You are in the Library. Shelves of dusty books surround you.", {tome});
+    const Room throne_room(
+        "ThroneRoom",
+        "You are in the Throne Room. An ornate throne sits at the far end.");
+    const Room kitchen(
+        "Kitchen",
+        "You are in the Kitchen. The smell of old ash lingers in the air.",
+        {key});
+    const Room cellar("Cellar", "You are in the Cellar. It is dark and damp.",
+                      {pendant});
+    const Room barracks(
+        "Barracks",
+        "You are in the Barracks. Rows of empty bunks line the walls.");
 
-    auto map =
-        std::make_unique<Map>(std::vector<Room>{grand_hall, armory},
-                              std::unordered_map<RoomName, RoomConnections>{
-                                  {"GrandHall", grand_hall_connection}});
+    RoomConnections grand_hall_connections;
+    grand_hall_connections.add(Direction::North, "Armoury");
+    grand_hall_connections.add(Direction::West, "Library");
+    grand_hall_connections.add(Direction::East, "ThroneRoom");
+    grand_hall_connections.add(Direction::South, "Kitchen");
 
-    return map;
+    RoomConnections armoury_connections;
+    armoury_connections.add(Direction::East, "Barracks");
+
+    RoomConnections kitchen_connections;
+    kitchen_connections.add(Direction::South, "Cellar");
+
+    return std::make_unique<Map>(
+        std::vector<Room>{grand_hall, armoury, library, throne_room, kitchen,
+                          cellar, barracks},
+        std::unordered_map<RoomName, RoomConnections>{
+            {"GrandHall", grand_hall_connections},
+            {"Armoury", armoury_connections},
+            {"Kitchen", kitchen_connections}});
   }
 
 }  // namespace adv_sk
