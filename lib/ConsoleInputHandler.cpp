@@ -28,6 +28,15 @@ namespace adv_sk {
       if (action == "take") {
         return Action::TakeItem;
       }
+      if (action == "drop") {
+        return Action::DropItem;
+      }
+      if (action == "inventory") {
+        return Action::DisplayInventory;
+      }
+      if (action == "look") {
+        return Action::Look;
+      }
 
       return Action::Quit;
     }

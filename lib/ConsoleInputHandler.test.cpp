@@ -74,6 +74,24 @@ namespace adv_sk::test {
     EXPECT_EQ(handler.get_action(), Action::UseItem);
   }
 
+  TEST(ConsoleInputHandler, getActionDrop) {
+    const StreamRedirector redirect("drop\n");
+    ConsoleInputHandler handler;
+    EXPECT_EQ(handler.get_action(), Action::DropItem);
+  }
+
+  TEST(ConsoleInputHandler, getActionInventory) {
+    const StreamRedirector redirect("inventory\n");
+    ConsoleInputHandler handler;
+    EXPECT_EQ(handler.get_action(), Action::DisplayInventory);
+  }
+
+  TEST(ConsoleInputHandler, getActionLook) {
+    const StreamRedirector redirect("look\n");
+    ConsoleInputHandler handler;
+    EXPECT_EQ(handler.get_action(), Action::Look);
+  }
+
   TEST(ConsoleInputHandler, getActionUnknownDefaultsToQuit) {
     const StreamRedirector redirect("unknown\n");
     ConsoleInputHandler handler;

@@ -49,6 +49,10 @@ namespace adv_sk {
         display_player_inventory();
         break;
       }
+      case Action::Look: {
+        look();
+        break;
+      }
       default: {
         _input_handler->provide_message("Command not recognized.");
       };
@@ -129,6 +133,11 @@ namespace adv_sk {
     } else {
       update_message("You can't use the " + item_name + "!\n");
     }
+  }
+
+  void Game::look() {
+    update_message(_map->get_welcome_message(_player->get_current_room()));
+    _input_handler->provide_directions(get_available_directions());
   }
 
   void Game::drop_item(const std::string& item_name) {

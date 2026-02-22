@@ -15,6 +15,7 @@ namespace adv_sk {
     DisplayInventory,
     UseItem,
     DropItem,
+    Look,
     Quit,
   };
 

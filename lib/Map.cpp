@@ -44,7 +44,9 @@ namespace adv_sk {
   }
 
   std::unique_ptr<adv_sk::Map> create_map() {
-    InventoryItem const sword("rusty sword");
+    InventoryItem const sword{
+        .name = "rusty sword",
+        .use_message = "You swing the rusty sword. The blade holds, but barely.\n"};
     InventoryItem const chalice(
         "golden chalice",
         "You hold the golden chalice aloft. It glints in the "

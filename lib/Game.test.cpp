@@ -320,6 +320,40 @@ namespace adv_sk::test {
     EXPECT_TRUE(game->handle_user_action());
   }
 
+  TEST_F(GameTest, handleUserActionLook) {
+    EXPECT_CALL(*mock_input, get_action()).WillOnce(Return(Action::Look));
+    EXPECT_CALL(*mock_player, get_current_room())
+        .WillRepeatedly(Return("GrandHall"));
+    EXPECT_CALL(*mock_map, get_welcome_message("GrandHall"))
+        .WillOnce(Return("Grand Hall description."));
+    EXPECT_CALL(*mock_map, next_room("GrandHall", _))
+        .WillRepeatedly(Return(std::nullopt));
+    EXPECT_CALL(*mock_input, provide_message("Grand Hall description."));
+    EXPECT_CALL(*mock_input, provide_directions(_));
+
+    EXPECT_TRUE(game->handle_user_action());
+  }
+
+  TEST_F(GameTest, lookDisplaysRoomDescriptionAndDirections) {
+    EXPECT_CALL(*mock_player, get_current_room())
+        .WillRepeatedly(Return("GrandHall"));
+    EXPECT_CALL(*mock_map, get_welcome_message("GrandHall"))
+        .WillOnce(Return("You are in the Grand Hall."));
+    EXPECT_CALL(*mock_map, next_room("GrandHall", Direction::North))
+        .WillOnce(Return(std::optional<RoomName>("Armoury")));
+    EXPECT_CALL(*mock_map, next_room("GrandHall", Direction::South))
+        .WillOnce(Return(std::nullopt));
+    EXPECT_CALL(*mock_map, next_room("GrandHall", Direction::East))
+        .WillOnce(Return(std::nullopt));
+    EXPECT_CALL(*mock_map, next_room("GrandHall", Direction::West))
+        .WillOnce(Return(std::nullopt));
+    EXPECT_CALL(*mock_input, provide_message("You are in the Grand Hall."));
+    EXPECT_CALL(*mock_input,
+                provide_directions(std::vector<Direction>{Direction::North}));
+
+    game->look();
+  }
+
   TEST_F(GameTest, handleUserActionDisplayInventory) {
     std::vector<InventoryItem> inv;
     EXPECT_CALL(*mock_input, get_action())

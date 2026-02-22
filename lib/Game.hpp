@@ -45,6 +45,8 @@ namespace adv_sk {
 
     void drop_item(const std::string& item_name);
 
+    void look();
+
     [[nodiscard]] std::vector<Direction> get_available_directions() const;
 
     [[nodiscard]] std::string get_current_message() const {
